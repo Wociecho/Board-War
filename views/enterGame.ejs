@@ -1,0 +1,10 @@
+<%- include('header') -%>
+<div class="alert">Zły nick!</div>
+<div>
+    <form action="/game" method="POST">
+        <input class="playName" name="username" type="text" placeholder="Username" minlength="4" maxlength="10" />
+        <input type="submit" class="playButton" value="PLAY" />
+    </form>
+</div>
+
+<%- include('footer') -%>
