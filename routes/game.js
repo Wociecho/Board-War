@@ -12,7 +12,6 @@ router.route("/game").post((req, res) => {
 });
 
 router.route('/game:roomId').get((req, res) => {
-    console.log(req.cookies.username);
     res.render('playGame', { username: req.cookies.username, roomId: req.params.roomId });
 });
 

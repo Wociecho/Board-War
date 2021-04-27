@@ -1,3 +1,88 @@
+body {
+    background-color: rgb(82, 126, 82);
+}
+
 .alert {
     display: none;
 }
+
+.board {
+    box-sizing: border-box;
+    margin: 50px;
+    width: 50%;
+    padding-top: 50%;
+    position: relative;
+    min-width: 300px;
+    min-height: 300px;
+}
+
+.field {
+    position: absolute;
+    width: calc(100%/7);
+    height: calc(100%/7);
+}
+
+/*przy transform field bez wewnętrznego elementu filler białe przestrzenie między polami*/
+
+.filler {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+}
+
+.turned-filler {
+    transform: rotate(-180deg);
+    -webkit-transform: rotate(-180deg);
+    -moz-transform: rotate(-180deg);
+    -ms-transform: rotate(-180deg);
+    -o-transform: rotate(-180deg);
+}
+
+.field:nth-of-type(odd) {
+    background-color: rgb(39, 17, 99);
+}
+
+.field:nth-of-type(even) {
+    background-color: rgb(14, 88, 14);
+}
+
+.WS {
+    background-image: url('/img/whiteSoldier.png');
+}
+
+.WT {
+    background-image: url('/img/whiteTank.png');
+}
+
+.WP {
+    background-image: url('/img/whitePlane.png');
+}
+
+.WH {
+    background-image: url('/img/whiteHelicopter.png');
+}
+
+.WG {
+    background-image: url('/img/whiteGeneral.png');
+}
+
+.BS {
+    background-image: url('/img/blackSoldier.png');
+}
+
+.BT {
+    background-image: url('/img/blackTank.png');
+}
+
+.BP {
+    background-image: url('/img/blackPlane.png');
+}
+
+.BH {
+    background-image: url('/img/blackHelicopter.png');
+}
+
+.BG {
+    background-image: url('/img/blackGeneral.png');
+}
+
