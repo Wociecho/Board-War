@@ -8,10 +8,12 @@ function findRoom(){
         rooms.push({
             id: rooms.length,
             players: 0,
-            playersnames: {
-                p1Name: '',
-                p2Name: ''
-            },
+            p1Name: '',
+            p1Id: '',
+            p2Name: '',
+            p2Id: '',
+            started: false,
+            onMove: 'white',
             board: board
         });
         returnId = rooms.findIndex(room => room.players < 2);

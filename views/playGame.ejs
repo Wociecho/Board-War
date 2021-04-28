@@ -3,10 +3,10 @@
 <div class="pname1"></div>
 <div class="pname2"></div>
 
-<div  onclick='getinfo(event)' class='board'>
+<div class='board'>
     <% for(let i = 1; i < 8; i++){ %>
         <% for(let j = 1; j < 8; j++){ %>
-            <div class='field f<%= (i - 1) * 7 + j %>' style='top: calc(<%= i - 1 %> * 100%/7); left: calc(<%= j - 1 %> * 100%/7);'>
+            <div class='field' data-fieldid='<%= (i - 1) * 7 + j %>' style='top: calc(<%= i - 1 %> * 100%/7); left: calc(<%= j - 1 %> * 100%/7);'>
                 <div class="filler"></div>
             </div>
         <% } %>
