@@ -1,7 +1,7 @@
 const socket = io('/game' + roomId);
 
 socket.on('connect', () => {
-    socket.emit('player join', roomId, username);
+    socket.emit('player join', username);
 });
 
 socket.on('wait', () => {
@@ -9,7 +9,7 @@ socket.on('wait', () => {
 });
 
 socket.on('start game', () => {
-    socket.emit('send nickname', username, roomId);
+    socket.emit('send nickname', username);
 });
 
 socket.on('set board', (name, board, whitePlayer) => {
@@ -17,22 +17,29 @@ socket.on('set board', (name, board, whitePlayer) => {
     updateBoard(board, whitePlayer);
 });
 
+function findMoves(e) {
+    socket.emit('find moves request', e.target.parentElement.dataset.fieldid);
+};
+
 socket.on('start turn', () => {
-    document.querySelector('.board').addEventListener('click', (e) => {
-        socket.emit('find moves request', roomId, e.target.parentElement.dataset.fieldid);
-    });
+    document.querySelector('.board').addEventListener('click', findMoves)
 });
 
 socket.on('find move response', (res) => {
     if(res.length > 0){
-        document.querySelector('.board').addEventListener('click', (e) => {    
+        colorFields(res);
+        document.querySelector('.board').addEventListener('click', function markValidFields(e) {
             const id = Number(e.target.parentElement.dataset.fieldid);
-            if(res[0].includes(id)){
-                console.log('can go');
-            };
-            if(res[1].includes(id)){
-                console.log('can hit');
+            if(res[0].includes(id) || res[1].includes(id)){
+                document.querySelector('.board').removeEventListener('click', findMoves);
+                socket.emit('make a move', id);
+                undoColorFields();
             }
+            document.querySelector('.board').removeEventListener('click', markValidFields);
         });
     }
+});
+
+socket.on('move confirmed', board => {
+    updateImages(board);
 });

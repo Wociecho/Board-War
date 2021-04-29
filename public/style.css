@@ -46,6 +46,14 @@ body {
     background-color: rgb(14, 88, 14);
 }
 
+.field.move-available {
+    background-color: orange;
+}
+
+.field.attack-available {
+    background-color: pink;
+}
+
 .WS {
     background-image: url('/img/whiteSoldier.png');
 }

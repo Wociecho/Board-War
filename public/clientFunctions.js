@@ -5,13 +5,35 @@ function updateUsernames(name){
 }
 
 function updateBoard(board, whitePlayer){
-    document.querySelectorAll('.filler').forEach((field, index, fields) => {
-        fields[index].classList.add(board[index]);
-    });
+    updateImages(board);
     if(username === whitePlayer){
         document.querySelectorAll('.filler').forEach(field => {
             field.classList.add('turned-filler');
         });
         document.querySelector('.board').style.transform = "rotate(180deg)";
     }
+}
+
+function updateImages(board) {
+    document.querySelectorAll('.filler').forEach((field, index, fields) => {
+        fields[index].classList.contains('turned-filler') ? fields[index].classList = 'filler turned-filler' : fields[index].classList = 'filler';
+        fields[index].classList.add(board[index]);
+    });
+}
+
+function colorFields(fields) {
+    undoColorFields();
+    fields[0].forEach(fieldId => {
+        document.querySelectorAll('.field')[fieldId-1].classList.toggle('move-available');
+    });
+    fields[1].forEach(fieldId => {
+        document.querySelectorAll('.field')[fieldId-1].classList.toggle('attack-available');
+    });
+}
+
+function undoColorFields() {
+    document.querySelectorAll('.field').forEach(field => {
+        field.classList.remove('move-available');
+        field.classList.remove('attack-available');
+    });
 }

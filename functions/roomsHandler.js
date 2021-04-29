@@ -14,7 +14,8 @@ function findRoom(){
             p2Id: '',
             started: false,
             onMove: 'white',
-            board: board
+            board: board,
+            selectedPiece: ''
         });
         returnId = rooms.findIndex(room => room.players < 2);
     }
