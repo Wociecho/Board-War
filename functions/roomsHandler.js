@@ -1,5 +1,3 @@
-import { board } from './boardStatus.js';
-
 const rooms = [];
 
 function findRoom(){
@@ -13,9 +11,19 @@ function findRoom(){
             p2Name: '',
             p2Id: '',
             started: false,
-            onMove: 'white',
-            board: board,
-            selectedPiece: ''
+            onMove: '',
+            board: ["WT", "WP", "WH", "WG", "WH", "WP", "WT",
+            "WS", "WS", "WS", "WS", "WS", "WS", "WS",
+            "E", "E", "E", "E", "E", "E", "E",
+            "E", "E", "E", "E", "E", "E", "E",
+            "E", "E", "E", "E", "E", "E", "E",
+            "BS", "BS", "BS", "BS", "BS", "BS", "BS",
+            "BT", "BP", "BH", "BG", "BH", "BP", "BT"],
+            selectedPiece: '',
+            counter: '',
+            time: 30,
+            wLimit: 6,
+            bLimit: 6
         });
         returnId = rooms.findIndex(room => room.players < 2);
     }

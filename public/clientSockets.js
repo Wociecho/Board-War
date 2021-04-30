@@ -12,9 +12,9 @@ socket.on('start game', () => {
     socket.emit('send nickname', username);
 });
 
-socket.on('set board', (name, board, whitePlayer) => {
+socket.on('set board', (name, board, whitePlayerId) => {
     updateUsernames(name);
-    updateBoard(board, whitePlayer);
+    updateBoard(board, whitePlayerId);
 });
 
 function findMoves(e) {
@@ -25,6 +25,10 @@ socket.on('start turn', () => {
     document.querySelector('.board').addEventListener('click', findMoves)
 });
 
+socket.on('countdown', timeLeft => {
+    document.querySelector('.timer').innerText = timeLeft;
+})
+
 socket.on('find move response', (res) => {
     if(res.length > 0){
         colorFields(res);
@@ -34,8 +38,8 @@ socket.on('find move response', (res) => {
                 document.querySelector('.board').removeEventListener('click', findMoves);
                 socket.emit('make a move', id);
                 undoColorFields();
+                document.querySelector('.board').removeEventListener('click', markValidFields);
             }
-            document.querySelector('.board').removeEventListener('click', markValidFields);
         });
     }
 });
@@ -43,3 +47,15 @@ socket.on('find move response', (res) => {
 socket.on('move confirmed', board => {
     updateImages(board);
 });
+
+socket.on('skipped turn', () => {
+    console.log('no no');
+});
+
+socket.on('end game', winner => {
+    if(socket.id === winner){
+        document.querySelector('.win-alert').innerText = "Gratulacje, wygrałeś!";
+    } else {
+        document.querySelector('.win-alert').innerText = "Buuuuuuu";
+    }
+})

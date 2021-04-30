@@ -1,7 +1,9 @@
 <%- include('header') -%>
 
-<div class="pname1"></div>
+<div class="pname1"></div> 
 <div class="pname2"></div>
+
+<div class="timer"></div>
 
 <div class='board'>
     <% for(let i = 1; i < 8; i++){ %>
@@ -12,6 +14,8 @@
         <% } %>
     <% } %>
 </div>
+
+<div class='win-alert'></div>
 
 <script>
     const username = '<%= username %>';

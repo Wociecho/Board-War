@@ -1,13 +1,5 @@
 import { rooms } from './roomsHandler.js';
 
-const board = ["WT", "WP", "WH", "WG", "WH", "WP", "WT",
-"WS", "WS", "WS", "WS", "WS", "WS", "WS",
-"E", "E", "E", "E", "E", "E", "E",
-"E", "E", "E", "E", "E", "E", "E",
-"E", "E", "E", "E", "E", "E", "E",
-"BS", "BS", "BS", "BS", "BS", "BS", "BS",
-"BT", "BP", "BH", "BG", "BH", "BP", "BT"];
-
 function convertToXY(id) {
     const xCoord = id%7 || 7;
     const yCoord = id%7 === 0 ? id/7 : 1 + Math.floor(id/7);
@@ -25,6 +17,7 @@ function findPossibleMovesAndTargets(roomId, id) {
     const [x, y] = convertToXY(id);
     let possibleCoords = [];
     let possibleTargets = [];
+    let additionalCoords = [];
 
     switch(piece){
         //soldier or general
@@ -37,7 +30,8 @@ function findPossibleMovesAndTargets(roomId, id) {
         //tank
         case 'WT':
         case 'BT':
-            possibleCoords = [[x+2, y], [x+1, y], [x-2, y], [x-1, y], [x, y+2], [x, y+1], [x, y-2], [x, y-1]];
+            possibleCoords = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]];
+            additionalCoords = [[x+2, y], [x-2, y], [x, y+2], [x, y-1]];
             for(let i = -2; i < 3; i++){
                 for(let j = -2; j < 3; j++){
                     possibleTargets.push([x + i, y + j]);
@@ -61,9 +55,35 @@ function findPossibleMovesAndTargets(roomId, id) {
             break;
     }
 
+    if(piece.match('T')){
+        let color = piece.match('W') ? 'W' : 'B';
+        possibleCoords.forEach((coord, index) => {
+            if(rooms[roomId].board[convertToId(coord)-1] === 'E'){
+                possibleCoords.push(additionalCoords[index]);
+            }
+        });
+    }
+    
+
     possibleCoords = possibleCoords.filter(coords => coords.every(xy => (xy > 0 && xy < 8))).map(leftCoords => convertToId(leftCoords));
     if(!possibleTargets.length) possibleTargets = possibleCoords;
     return [possibleCoords, possibleTargets];
 }
 
-export { board, findPossibleMovesAndTargets };
+function checkLeft(roomId) {
+    let wGeneral = rooms[roomId].board.indexOf('WG') !== -1 ? 2 : 0;
+    let bGeneral = rooms[roomId].board.indexOf('BG') !== -1 ? 2 : 0;
+    
+    let whiteLeft = rooms[roomId].board.filter(field => field.match('W')).length + wGeneral;
+    let blackLeft = rooms[roomId].board.filter(field => field.match('B')).length + bGeneral;
+
+    if(whiteLeft <= rooms[roomId].wLimit){
+        return (rooms[roomId].p2Id);
+    }
+    if(blackLeft <= rooms[roomId].bLimit){
+        return (rooms[roomId].p1Id);
+    }
+    return ('continue');
+}
+
+export { checkLeft, findPossibleMovesAndTargets };

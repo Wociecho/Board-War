@@ -4,9 +4,9 @@ function updateUsernames(name){
     document.querySelector('.pname2').innerText = name;
 }
 
-function updateBoard(board, whitePlayer){
+function updateBoard(board, whitePlayerId){
     updateImages(board);
-    if(username === whitePlayer){
+    if(socket.id === whitePlayerId){
         document.querySelectorAll('.filler').forEach(field => {
             field.classList.add('turned-filler');
         });
