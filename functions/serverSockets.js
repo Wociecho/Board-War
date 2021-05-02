@@ -1,44 +1,44 @@
-import { rooms, isTwoPlayers } from './roomsHandler.js';
+import { rooms, isTwoPlayers, checkIfPlayerAlreadyInGame, resetRoom } from './roomsHandler.js';
 import { checkLeft, findPossibleMovesAndTargets } from './boardStatus.js';
 
 function sockets(io){
     io.of(/^\/game\d+$/).on('connection', socket => {
         const roomId = Number(socket.nsp.name.replace('/game', ''));
+        if(!rooms[roomId].started) {
+            rooms[roomId].players++;
+        }
 
-        function checkIfGameCanBeContinued(currentPlayerId){
-            if(currentPlayerId === rooms[roomId].p1Id){
-                console.log('na ruchu byl bialy');
+        function checkIfGameCanBeContinued(){
+            if(rooms[roomId].onMove === rooms[roomId].p1Id){
                 rooms[roomId].onMove = rooms[roomId].p2Id;
-            }
-            if(currentPlayerId === rooms[roomId].p2Id){
-                console.log('na ruchu czarny');
+            } else if(rooms[roomId].onMove === rooms[roomId].p2Id){
                 rooms[roomId].onMove = rooms[roomId].p1Id;
             }
             setTimer(false);
             if(checkLeft(roomId) === 'continue') {
                 io.of('/game' + roomId).to(rooms[roomId].onMove).emit('start turn');
-                setTimer(true, rooms[roomId].onMove);
+                setTimer(true);
             } else {
                 io.of('/game' + roomId).emit('end game', checkLeft(roomId));
+                resetRoom(roomId);
             }
         }
 
-        function setTimer(setOrReset, socketId) {
+        function setTimer(setOrReset) {
             if(setOrReset){
-                rooms[roomId].time = 31;
+                rooms[roomId].time = rooms[roomId].onMove === 'dc' ? 11 : 31;
                 rooms[roomId].counter = setInterval(() => {
                     io.of('/game' + roomId).emit('countdown', rooms[roomId].time - 1);
                     rooms[roomId].time --;
                     if(rooms[roomId].time === 0) {
                         setTimer(false);
-                        //przeciwne wartości, bo id otrzymujemy od gracza kończącego turę
-                        if(socketId === rooms[roomId].p1Id) {
-                            rooms[roomId].bLimit ++;
-                        }
-                        if(socketId === rooms[roomId].p2Id) {
+                        if(rooms[roomId].onMove === rooms[roomId].p1Id) {
                             rooms[roomId].wLimit ++;
                         }
-                        checkIfGameCanBeContinued(socketId);
+                        if(rooms[roomId].onMove === rooms[roomId].p2Id) {
+                            rooms[roomId].bLimit ++;
+                        }
+                        checkIfGameCanBeContinued();
                     }
                 }, 1000);
             }
@@ -47,28 +47,62 @@ function sockets(io){
             }
         }
 
-        console.log('connected');
-        socket.on('player join', (username) => {
-            socket.username = username;
-            
-            rooms[roomId].p1Name === "" ?
-            (rooms[roomId].p1Name = username,
-            rooms[roomId].p1Id = socket.id) :
-            (rooms[roomId].p2Name = username,
-            rooms[roomId].p2Id = socket.id);
-            
-            if(isTwoPlayers(roomId)) {
-                rooms[roomId].onMove = rooms[roomId].p1Id;
-                io.of('/game' + roomId).emit('start game');
+        socket.on("disconnect", (reason) => {
+            const disconnectedId = checkIfPlayerAlreadyInGame(socket.id, 'id');
+            if(disconnectedId !== undefined){
+                if(!rooms[disconnectedId].started){
+                    rooms[disconnectedId].players--;
+                    if(rooms[disconnectedId].p1Id === socket.id) {
+                        rooms[disconnectedId].p1Id = '';
+                        rooms[disconnectedId].p1Name = '';
+                    } else if(rooms[disconnectedId].p2Id === socket.id) {
+                        rooms[disconnectedId].p2Id = '';
+                        rooms[disconnectedId].p2Name = '';
+                    }
+                } else {
+                    if(rooms[disconnectedId].p1Id === socket.id) {
+                        rooms[disconnectedId].p1Id = 'dc';
+                    } else if(rooms[disconnectedId].p2Id === socket.id) {
+                        rooms[disconnectedId].p2Id = 'dc';
+                    }
+                    if(rooms[disconnectedId].p1Id === 'dc' && rooms[disconnectedId].p2Id === 'dc') {
+                        setTimer(false);
+                        resetRoom(disconnectedId);
+                    } else if(rooms[disconnectedId].onMove === socket.id) {
+                        rooms[disconnectedId].onMove = 'dc';
+                    }
+                }
             }
-        });
+          });
 
-        socket.on('send nickname', (username) => {
-            io.of('/game' + roomId).emit('set board', username, rooms[roomId].board, rooms[roomId].p1Id);
+        
+        socket.on('player join', (username) => {
+            if(rooms[roomId].started) {
+                if(username === rooms[roomId].p1Name && rooms[roomId].p1Id === 'dc') {
+                    rooms[roomId].p1Id = socket.id;
+                } else if(username === rooms[roomId].p2Name && rooms[roomId].p2Id === 'dc') {
+                    rooms[roomId].p2Id = socket.id;
+                }
+                if(rooms[roomId].onMove === 'dc') {
+                    rooms[roomId].onMove = socket.id;
+                    socket.emit('start turn');
+                }
+                socket.emit('set board', rooms[roomId].p1Name, rooms[roomId].p2Name, rooms[roomId].board, rooms[roomId].p1Id);
+            }
             if(!rooms[roomId].started) {
-                rooms[roomId].started = true;
-                io.of('/game' + roomId).to(rooms[roomId].p1Id).emit('start turn');
-                setTimer(true, rooms[roomId].p1Id);
+                rooms[roomId].p1Name === "" ?
+                (rooms[roomId].p1Name = username,
+                rooms[roomId].p1Id = socket.id) :
+                (rooms[roomId].p2Name = username,
+                rooms[roomId].p2Id = socket.id);
+                
+                if(isTwoPlayers(roomId)) {
+                    rooms[roomId].onMove = rooms[roomId].p1Id;
+                    io.of('/game' + roomId).emit('set board', rooms[roomId].p1Name, rooms[roomId].p2Name, rooms[roomId].board, rooms[roomId].p1Id);
+                    rooms[roomId].started = true;
+                    io.of('/game' + roomId).to(rooms[roomId].p1Id).emit('start turn');
+                    setTimer(true);
+                }
             }
         });
 
@@ -94,8 +128,11 @@ function sockets(io){
             }
         });
 
-        socket.on('make a move', (fieldId) => {
-            if(fieldId >=1 && fieldId <=49 && socket.id === rooms[roomId].onMove) {
+        socket.on('make a move', fieldId => {
+            let color;
+            if(rooms[roomId].onMove === rooms[roomId].p1Id) color = 'W';
+            if(rooms[roomId].onMove === rooms[roomId].p2Id) color = 'B';
+            if(fieldId >=1 && fieldId <=49 && socket.id === rooms[roomId].onMove && rooms[roomId].board[rooms[roomId].selectedPiece-1]?.match(color)) {
                 if(rooms[roomId].board[rooms[roomId].selectedPiece-1].match('T') && rooms[roomId].board[fieldId-1] !== 'E') {
                     rooms[roomId].board[fieldId-1] = 'E';
                 } else {
@@ -103,7 +140,6 @@ function sockets(io){
                     rooms[roomId].board[rooms[roomId].selectedPiece-1] = "E";
                 }
                 io.of('/game' + roomId).emit('move confirmed', rooms[roomId].board);
-                //wysylane id tego, ktory skonczyl
                 checkIfGameCanBeContinued(socket.id);
             }
         });

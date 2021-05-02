@@ -30,7 +30,7 @@ body {
     background-size: cover;
 }
 
-.turned-filler {
+.turned {
     transform: rotate(-180deg);
     -webkit-transform: rotate(-180deg);
     -moz-transform: rotate(-180deg);

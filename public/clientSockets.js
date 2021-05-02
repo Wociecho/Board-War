@@ -4,16 +4,8 @@ socket.on('connect', () => {
     socket.emit('player join', username);
 });
 
-socket.on('wait', () => {
-    console.log('jesteś sam');
-});
-
-socket.on('start game', () => {
-    socket.emit('send nickname', username);
-});
-
-socket.on('set board', (name, board, whitePlayerId) => {
-    updateUsernames(name);
+socket.on('set board', (nameP1, nameP2, board, whitePlayerId) => {
+    updateUsernames(nameP1, nameP2);
     updateBoard(board, whitePlayerId);
 });
 
@@ -46,10 +38,6 @@ socket.on('find move response', (res) => {
 
 socket.on('move confirmed', board => {
     updateImages(board);
-});
-
-socket.on('skipped turn', () => {
-    console.log('no no');
 });
 
 socket.on('end game', winner => {
