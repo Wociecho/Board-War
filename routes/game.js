@@ -4,7 +4,7 @@ import { findRoom, checkIfPlayerAlreadyInGame, rooms } from '../functions/roomsH
 
 router.route('/').get((req, res) => {
     if(req.cookies.username) {
-        const inGameIndex = checkIfPlayerAlreadyInGame(req.cookies.username, 'name');
+        const inGameIndex = checkIfPlayerAlreadyInGame(req.cookies.username);
         inGameIndex !== undefined ? res.redirect(`/game${inGameIndex}`) : res.redirect(`/game${findRoom()}`);
         } else {
         res.render('enterGame');
@@ -12,7 +12,7 @@ router.route('/').get((req, res) => {
 });
 
 router.route('/game').post((req, res) => {
-    const inGameIndex = checkIfPlayerAlreadyInGame(req.body.username, 'name');
+    const inGameIndex = checkIfPlayerAlreadyInGame(req.body.username);
     //jeżeli istnieje połączony z takim nickiem brak akceptacji
     if(inGameIndex !== undefined){
         if((req.body.username === rooms[inGameIndex].p1Name && rooms[inGameIndex].p1Id !== 'dc') || (req.body.username === rooms[inGameIndex].p2Name && rooms[inGameIndex].p2Id !== 'dc')){
@@ -26,12 +26,12 @@ router.route('/game').post((req, res) => {
 
 router.route('/game:roomId').get((req, res) => {
     if(req.cookies.username) {
-        const inGameIndex = checkIfPlayerAlreadyInGame(req.cookies.username, 'name');
-        if(inGameIndex == req.params.roomId){
+        const roomNo = checkIfPlayerAlreadyInGame(req.cookies.username);
+        if(roomNo == req.params.roomId){
             res.render('playGame', { username: req.cookies.username, roomId: req.params.roomId });
-        } else if(inGameIndex !== undefined) {
-            res.redirect(`/game${inGameIndex}`);
-        } else if(req.params.roomId == rooms.length-1 && !rooms[req.params.roomId].started){
+        } else if(roomNo !== undefined) {
+            res.redirect(`/game${roomNo}`);
+        } else if(req.params.roomId == rooms[rooms.length-1]?.no && !rooms[rooms.length-1]?.started){
             res.render('playGame', { username: req.cookies.username, roomId: req.params.roomId });
         } else {
             res.redirect(`/game${findRoom()}`);

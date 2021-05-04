@@ -1,5 +1,3 @@
-import { rooms } from './roomsHandler.js';
-
 function convertToXY(id) {
     const xCoord = id%7 || 7;
     const yCoord = id%7 === 0 ? id/7 : 1 + Math.floor(id/7);
@@ -11,8 +9,8 @@ function convertToId(xyArr) {
     return xyArr[0] + (xyArr[1] - 1) * 7
 }
 
-function findPossibleMovesAndTargets(roomId, id) {
-    let piece = rooms[roomId].board[id-1];
+function findPossibleMovesAndTargets(room, id) {
+    let piece = room.board[id-1];
 
     const [x, y] = convertToXY(id);
     let possibleCoords = [];
@@ -58,30 +56,29 @@ function findPossibleMovesAndTargets(roomId, id) {
     if(piece.match('T')){
         let color = piece.match('W') ? 'W' : 'B';
         possibleCoords.forEach((coord, index) => {
-            if(rooms[roomId].board[convertToId(coord)-1] === 'E'){
+            if(room.board[convertToId(coord)-1] === 'E'){
                 possibleCoords.push(additionalCoords[index]);
             }
         });
     }
-    
 
-    possibleCoords = possibleCoords.filter(coords => coords.every(xy => (xy > 0 && xy < 8))).map(leftCoords => convertToId(leftCoords));
+    possibleCoords = possibleCoords.filter(coords => coords.every(coord => (coord > 0 && coord < 8))).map(leftCoords => convertToId(leftCoords));
     if(!possibleTargets.length) possibleTargets = possibleCoords;
     return [possibleCoords, possibleTargets];
 }
 
-function checkLeft(roomId) {
-    let wGeneral = rooms[roomId].board.indexOf('WG') !== -1 ? 2 : 0;
-    let bGeneral = rooms[roomId].board.indexOf('BG') !== -1 ? 2 : 0;
+function checkLeft(room) {
+    let wGeneral = room.board.indexOf('WG') !== -1 ? 2 : 0;
+    let bGeneral = room.board.indexOf('BG') !== -1 ? 2 : 0;
     
-    let whiteLeft = rooms[roomId].board.filter(field => field.match('W')).length + wGeneral;
-    let blackLeft = rooms[roomId].board.filter(field => field.match('B')).length + bGeneral;
+    let whiteLeft = room.board.filter(field => field.match('W')).length + wGeneral;
+    let blackLeft = room.board.filter(field => field.match('B')).length + bGeneral;
 
-    if(whiteLeft <= rooms[roomId].wLimit){
-        return (rooms[roomId].p2Id);
+    if(whiteLeft <= room.wLimit){
+        return (room.p2Id);
     }
-    if(blackLeft <= rooms[roomId].bLimit){
-        return (rooms[roomId].p1Id);
+    if(blackLeft <= room.bLimit){
+        return (room.p1Id);
     }
     return ('continue');
 }

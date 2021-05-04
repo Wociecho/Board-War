@@ -1,145 +1,145 @@
-import { rooms, isTwoPlayers, checkIfPlayerAlreadyInGame, resetRoom } from './roomsHandler.js';
+import { rooms, isTwoPlayers, deleteRoom } from './roomsHandler.js';
 import { checkLeft, findPossibleMovesAndTargets } from './boardStatus.js';
 
 function sockets(io){
     io.of(/^\/game\d+$/).on('connection', socket => {
-        const roomId = Number(socket.nsp.name.replace('/game', ''));
-        if(!rooms[roomId].started) {
-            rooms[roomId].players++;
+        const roomId = rooms.findIndex(room => room.no == socket.nsp.name.replace('/game', ''));
+        const room = rooms[roomId];
+        if(!room.started) {
+            room.players++;
         }
 
         function checkIfGameCanBeContinued(){
-            if(rooms[roomId].onMove === rooms[roomId].p1Id){
-                rooms[roomId].onMove = rooms[roomId].p2Id;
-            } else if(rooms[roomId].onMove === rooms[roomId].p2Id){
-                rooms[roomId].onMove = rooms[roomId].p1Id;
+            if(room.onMove === room.p1Id){
+                room.onMove = room.p2Id;
+            } else if(room.onMove === room.p2Id){
+                room.onMove = room.p1Id;
             }
             setTimer(false);
-            if(checkLeft(roomId) === 'continue') {
-                io.of('/game' + roomId).to(rooms[roomId].onMove).emit('start turn');
+            if(checkLeft(room) === 'continue') {
+                io.of('/game' + room.no).to(room.onMove).emit('start turn');
                 setTimer(true);
             } else {
-                io.of('/game' + roomId).emit('end game', checkLeft(roomId));
-                resetRoom(roomId);
+                io.of('/game' + room.no).emit('end game', checkLeft(room));
+                deleteRoom(room);
             }
         }
 
         function setTimer(setOrReset) {
             if(setOrReset){
-                rooms[roomId].time = rooms[roomId].onMove === 'dc' ? 11 : 31;
-                rooms[roomId].counter = setInterval(() => {
-                    io.of('/game' + roomId).emit('countdown', rooms[roomId].time - 1);
-                    rooms[roomId].time --;
-                    if(rooms[roomId].time === 0) {
+                room.time = room.onMove === 'dc' ? 11 : 31;
+                room.counter = setInterval(() => {
+                    io.of('/game' + room.no).emit('countdown', room.time - 1);
+                    room.time --;
+                    if(room.time === 0) {
                         setTimer(false);
-                        if(rooms[roomId].onMove === rooms[roomId].p1Id) {
-                            rooms[roomId].wLimit ++;
+                        if(room.onMove === room.p1Id) {
+                            room.wLimit ++;
                         }
-                        if(rooms[roomId].onMove === rooms[roomId].p2Id) {
-                            rooms[roomId].bLimit ++;
+                        if(room.onMove === room.p2Id) {
+                            room.bLimit ++;
                         }
                         checkIfGameCanBeContinued();
                     }
                 }, 1000);
             }
             if(!setOrReset) {
-                clearInterval(rooms[roomId].counter);
+                clearInterval(room.counter);
             }
         }
 
         socket.on("disconnect", (reason) => {
-            const disconnectedId = checkIfPlayerAlreadyInGame(socket.id, 'id');
-            if(disconnectedId !== undefined){
-                if(!rooms[disconnectedId].started){
-                    rooms[disconnectedId].players--;
-                    if(rooms[disconnectedId].p1Id === socket.id) {
-                        rooms[disconnectedId].p1Id = '';
-                        rooms[disconnectedId].p1Name = '';
-                    } else if(rooms[disconnectedId].p2Id === socket.id) {
-                        rooms[disconnectedId].p2Id = '';
-                        rooms[disconnectedId].p2Name = '';
-                    }
-                } else {
-                    if(rooms[disconnectedId].p1Id === socket.id) {
-                        rooms[disconnectedId].p1Id = 'dc';
-                    } else if(rooms[disconnectedId].p2Id === socket.id) {
-                        rooms[disconnectedId].p2Id = 'dc';
-                    }
-                    if(rooms[disconnectedId].p1Id === 'dc' && rooms[disconnectedId].p2Id === 'dc') {
-                        setTimer(false);
-                        resetRoom(disconnectedId);
-                    } else if(rooms[disconnectedId].onMove === socket.id) {
-                        rooms[disconnectedId].onMove = 'dc';
-                    }
+            if(!room.started){
+                room.players--;
+                if(room.p1Id === socket.id) {
+                    room.p1Id = '';
+                    room.p1Name = '';
+                } else if(room.p2Id === socket.id) {
+                    room.p2Id = '';
+                    room.p2Name = '';
+                }
+            } else {
+                if(room.p1Id === socket.id) {
+                    room.p1Id = 'dc';
+                } else if(room.p2Id === socket.id) {
+                    room.p2Id = 'dc';
+                }
+                if(room.p1Id === 'dc' && room.p2Id === 'dc') {
+                    setTimer(false);
+                    deleteRoom(room);
+                } else if(room.onMove === socket.id) {
+                    room.onMove = 'dc';
                 }
             }
-          });
+        });
 
         
         socket.on('player join', (username) => {
-            if(rooms[roomId].started) {
-                if(username === rooms[roomId].p1Name && rooms[roomId].p1Id === 'dc') {
-                    rooms[roomId].p1Id = socket.id;
-                } else if(username === rooms[roomId].p2Name && rooms[roomId].p2Id === 'dc') {
-                    rooms[roomId].p2Id = socket.id;
+            if(room.started) {
+                console.log('wykonuje player join 1');
+                if(username === room.p1Name && room.p1Id === 'dc') {
+                    room.p1Id = socket.id;
+                } else if(username === room.p2Name && room.p2Id === 'dc') {
+                    room.p2Id = socket.id;
                 }
-                if(rooms[roomId].onMove === 'dc') {
-                    rooms[roomId].onMove = socket.id;
+                if(room.onMove === 'dc') {
+                    room.onMove = socket.id;
                     socket.emit('start turn');
                 }
-                socket.emit('set board', rooms[roomId].p1Name, rooms[roomId].p2Name, rooms[roomId].board, rooms[roomId].p1Id);
+                socket.emit('set board', room.p1Name, room.p2Name, room.board, room.p1Id);
             }
-            if(!rooms[roomId].started) {
-                rooms[roomId].p1Name === "" ?
-                (rooms[roomId].p1Name = username,
-                rooms[roomId].p1Id = socket.id) :
-                (rooms[roomId].p2Name = username,
-                rooms[roomId].p2Id = socket.id);
+            if(!room.started) {
+                console.log('wykonuje player join2');
+                room.p1Name === "" ?
+                (room.p1Name = username,
+                room.p1Id = socket.id) :
+                (room.p2Name = username,
+                room.p2Id = socket.id);
                 
-                if(isTwoPlayers(roomId)) {
-                    rooms[roomId].onMove = rooms[roomId].p1Id;
-                    io.of('/game' + roomId).emit('set board', rooms[roomId].p1Name, rooms[roomId].p2Name, rooms[roomId].board, rooms[roomId].p1Id);
-                    rooms[roomId].started = true;
-                    io.of('/game' + roomId).to(rooms[roomId].p1Id).emit('start turn');
+                if(isTwoPlayers(room)) {
+                    room.onMove = room.p1Id;
+                    io.of('/game' + room.no).emit('set board', room.p1Name, room.p2Name, room.board, room.p1Id);
+                    room.started = true;
+                    io.of('/game' + room.no).to(room.p1Id).emit('start turn');
                     setTimer(true);
                 }
             }
         });
 
         socket.on('find moves request', (unitId) => {
-            if(unitId >=1 && unitId <=49 && socket.id === rooms[roomId].onMove){
+            if(unitId >=1 && unitId <=49 && socket.id === room.onMove){
                 let res = [];
                 let color, oppositeColor;
                 
-                if(rooms[roomId].p1Id === socket.id) { color = "W"; oppositeColor = "B"; }
-                if(rooms[roomId].p2Id === socket.id) { color = "B"; oppositeColor = "W"; }
+                if(room.p1Id === socket.id) { color = "W"; oppositeColor = "B"; }
+                if(room.p2Id === socket.id) { color = "B"; oppositeColor = "W"; }
 
-                rooms[roomId].board[unitId-1].match(color) ?
-                res = findPossibleMovesAndTargets(roomId, unitId) :
+                room.board[unitId-1].match(color) ?
+                res = findPossibleMovesAndTargets(room, unitId) :
                 res = [];
 
                 if(res.length > 0){
-                    res[0] = res[0].filter(fieldId => !rooms[roomId].board[fieldId-1].match(color));
-                    res[1] = res[1].filter(fieldId => rooms[roomId].board[fieldId-1].match(oppositeColor));
-                    rooms[roomId].selectedPiece = unitId;
+                    res[0] = res[0].filter(fieldId => !room.board[fieldId-1].match(color));
+                    res[1] = res[1].filter(fieldId => room.board[fieldId-1].match(oppositeColor));
+                    room.selectedPiece = unitId;
                 }
                 
-                io.of('/game' + roomId).to(socket.id).emit('find move response', res);
+                io.of('/game' + room.no).to(socket.id).emit('find move response', res);
             }
         });
 
         socket.on('make a move', fieldId => {
             let color;
-            if(rooms[roomId].onMove === rooms[roomId].p1Id) color = 'W';
-            if(rooms[roomId].onMove === rooms[roomId].p2Id) color = 'B';
-            if(fieldId >=1 && fieldId <=49 && socket.id === rooms[roomId].onMove && rooms[roomId].board[rooms[roomId].selectedPiece-1]?.match(color)) {
-                if(rooms[roomId].board[rooms[roomId].selectedPiece-1].match('T') && rooms[roomId].board[fieldId-1] !== 'E') {
-                    rooms[roomId].board[fieldId-1] = 'E';
+            if(room.onMove === room.p1Id) color = 'W';
+            if(room.onMove === room.p2Id) color = 'B';
+            if(fieldId >=1 && fieldId <=49 && socket.id === room.onMove && room.board[room.selectedPiece-1]?.match(color)) {
+                if(room.board[room.selectedPiece-1].match('T') && room.board[fieldId-1] !== 'E') {
+                    room.board[fieldId-1] = 'E';
                 } else {
-                    rooms[roomId].board[fieldId-1] = rooms[roomId].board[rooms[roomId].selectedPiece-1];
-                    rooms[roomId].board[rooms[roomId].selectedPiece-1] = "E";
+                    room.board[fieldId-1] = room.board[room.selectedPiece-1];
+                    room.board[room.selectedPiece-1] = "E";
                 }
-                io.of('/game' + roomId).emit('move confirmed', rooms[roomId].board);
+                io.of('/game' + room.no).emit('move confirmed', room.board);
                 checkIfGameCanBeContinued(socket.id);
             }
         });
