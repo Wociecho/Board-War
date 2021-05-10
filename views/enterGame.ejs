@@ -1,10 +1,86 @@
 <%- include('header') -%>
-<div class="alert">Zły nick!</div>
-<div>
-    <form action="/game" method="POST">
-        <input class="playName" name="username" type="text" placeholder="Username" minlength="4" maxlength="10" required />
-        <input type="submit" class="playButton" value="PLAY" />
+<button class='show-rules'>
+    <i class="far fa-question-circle"></i>
+</button>
+<div class='game-status-container rules'>
+    <div class='container rules-container'>
+        <div>
+            <h1 class='rules-header'>Cel</h1>
+            <p>Celem gry jest eliminacja armi wroga. Pierwsza armia, która wyeliminuje 10 z 14 (lub 8 z 14, jeżeli wśród pokonanych jest generał) jednostek wroga wygrywa.</p>
+        </div>
+        <div class='rules-rules'>
+            <h1 class='rules-header'>Zasady</h1>
+            <ul>
+                <li>Armia każdego z graczy składa się z:
+                    <ul>
+                        <li>7 żołnierzy,</li>
+                        <li>2 czołgów,</li>
+                        <li>2 samolotów,</li>
+                        <li>2 helikopterów,</li>
+                        <li>generała.</li>
+                    </ul>
+                </li>
+                <li>Gracze wykonują ruchy na zmianę .</li>
+
+                <li>W swojej turze gracz:
+                    <ul>
+                        <li>ma 30 sekund na wykonanie posunięcia</li>
+                        <li>musi wykonać ruch jedną ze swoich jednostek</li>
+                    </ul>
+                </li>
+
+                <li>Po wykonaniu ruchu od razu rozpoczyna się tura przeciwnika.</li>
+                <li>Wykonując ruch możemy wyeliminować jednostkę wroga, jeżeli poruszana przez nas jednostka ma taką możliwość.</li>
+                <li>Jeżeli w trakcie gry armia utraci generała, wówczas jej morale spada i poddaje się już po utracie 8 z 14 jednostek.</li>
+                <li>Jeżeli gracz nie wykona ruchu armia traci morale (przeciwnik musi wyeliminować 1 jednostkę mniej, aby zwyciężyć).</li>
+            </ul>
+        </div>
+        <h1 class='rules-header'>Opis jednostek</h1>
+        <div>
+            <table class='rules-table'>
+                <thead>
+                    <tr>
+                        <th>Jednostka</th>
+                        <th>Możliwości ruchu</th>
+                        <th>Zasady bicia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Generał</td>
+                        <td>1 pole w każdą stronę</td>
+                        <td rowspan="4">Jeżeli na polu na które wkracza znajduje się jednostka przeciwnika zostanie ona zlikwidowana</td>
+                    </tr>
+                    <tr>
+                        <td>Żołnierz</td>
+                        <td>1 pole w każdą stronę</td>
+                    </tr>
+                    <tr>
+                        <td>Samolot</td>
+                        <td>1 do 3 pól po skosie w dowolnym kierunku</td>
+                    </tr>
+                    <tr>
+                        <td>Helikopter</td>
+                        <td>2 pola w dowolnym kierunku</td>
+                    </tr>
+                    <tr>
+                        <td>Czołg</td>
+                        <td>1 lub 2 pola w pionie lub poziomie</td>
+                        <td>Jeżeli po rozpoczęciu tury w zasięgu 2 pól znajduje się wroga jednostka czołg może ją wyeliminować</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class='login-form container'>
+    <form action="/game" method="POST"> 
+        <p class='form-header'>Wybierz nazwę</p>
+        <input class="form-name" name="username" type="text" placeholder="Username" minlength="4" maxlength="10" required />
+        <input class="form-button" type="submit" value="GRAJ" />
     </form>
 </div>
 
+
+<script src='/showRules.js'></script>
 <%- include('footer') -%>

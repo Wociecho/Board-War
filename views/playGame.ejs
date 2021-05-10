@@ -1,21 +1,51 @@
 <%- include('header') -%>
 
-<div class="pname1"></div> 
-<div class="pname2"></div>
-
-<div class="timer"></div>
-
-<div class='board'>
-    <% for(let i = 1; i < 8; i++){ %>
-        <% for(let j = 1; j < 8; j++){ %>
-            <div class='field' data-fieldid='<%= (i - 1) * 7 + j %>' style='top: calc(<%= i - 1 %> * 100%/7); left: calc(<%= j - 1 %> * 100%/7);'>
-                <div class="filler"></div>
+<div class='container board-container'>
+    <div class='board'>
+        <div class='game-status-container'>
+            <div class='game-status-content'>
+                <div class='win-alert'>Oczekiwanie na przeciwnika</div>
+                <button class='play-again game-button'>Nowa gra</button>
             </div>
+        </div>
+        <% for(let i = 1; i < 8; i++){ %>
+            <% for(let j = 1; j < 8; j++){ %>
+                <div class='field' data-fieldid='<%= (i - 1) * 7 + j %>' style='top:calc(<%= i - 1 %> * 100%/7); left:calc(<%= j - 1 %> * 100%/7);'>
+                    <div class="filler"></div>
+                </div>
+            <% } %>
         <% } %>
-    <% } %>
-</div>
+    </div>
+    <div class='side-panel'>
+        <div class='chat'>
+            <div class='alert-message'>
+                <p class='alert-message-text'></p>
+                <div class='alert-message-buttons'>
+                    <button class='alert-message-button game-button accept-button'>Akceptuj</button>
+                    <button class='alert-message-button game-button decline-button'>Odrzuć</button>
+                </div>
+            </div>
+            <div class='chat-messages'></div>
+            <form class='chat-form'>
+                <input class='chat-input' minlength='1' maxlength='60' type='text' placeholder='Wiadomość' />
+                <button class='chat-submit'><i class="fas fa-arrow-right"></i></button>
+            </form>
+        </div>
+        <div class='game-info'>
+            <div class='pnames'>
+                <div class="pname1">Gracz 1</div> 
+                <div class="pname2">Gracz 2</div>
+            </div>
+        
+            <div class="timer">30</div>
 
-<div class='win-alert'></div>
+            <div class='surr-draw-buttons'>
+                <button class='offer-draw game-button'><i class="fas fa-handshake"></i></button>
+                <button class='surrender game-button'><i class="far fa-flag"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     const username = '<%= username %>';
