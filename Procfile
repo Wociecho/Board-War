@@ -1,1 +1,1 @@
-web: mode app.js
+web: node app.js
