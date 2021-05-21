@@ -28,7 +28,7 @@ function findPossibleMovesAndTargets(room, id) {
         case 'WT':
         case 'BT':
             possibleMoves = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]];
-            additionalCoords = [[x+2, y], [x-2, y], [x, y+2], [x, y-1]];
+            additionalCoords = [[x+2, y], [x-2, y], [x, y+2], [x, y-2]];
             for(let i = -2; i < 3; i++){
                 for(let j = -2; j < 3; j++){
                     possibleTargets.push([x + i, y + j]);
