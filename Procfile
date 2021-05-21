@@ -1,1 +1,1 @@
-web: mpde app.js
+web: mode app.js
